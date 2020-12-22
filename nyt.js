@@ -10,8 +10,8 @@ const searchForm = document.querySelector('form');
 const submitBtn = document.querySelector('.submit');
 
 //RESULTS NAVIGATION
-const nextBtn = document.querySelector('.next');
-const previousBtn = document.querySelector('.prev');
+const nextBtn = document.querySelector('#next');
+const previousBtn = document.querySelector('#prev');
 const nav = document.querySelector('nav');
 
 //RESULTS SECTION
@@ -28,15 +28,11 @@ searchForm.addEventListener('submit', fetchResults);
 nextBtn.addEventListener('click', nextPage); //3
 previousBtn.addEventListener('click', previousPage); //3
 
-
-
-
 function fetchResults(e) {
     e.preventDefault();  
     console.log(e); //2
     url = `${baseURL}?api-key=${key}&page=${pageNumber}&q=${searchTerm.value}`;
  //   url =  baseURL + '?api-key=' + key + '&page=' + pageNumber + '&q=' + searchTerm.value;
-
     
     console.log("URL:",url); //4
     if(startDate.value !== '') {
@@ -57,21 +53,44 @@ function fetchResults(e) {
   });
 } 
 
-
 function displayResults(json) {
+   
    while (section.firstChild) {
         section.removeChild(section.firstChild); //1
    }
   
+  var results = json;
+  console.log("results:",results);
+  var arrayLength = results.response.meta.hits;
+  console.log("arrayLength:",arrayLength);
+    
+  var numberOfPages = 1;   // calculates the total number of pages
+  var numberPerPage = 10;
+
+  function getNumberOfPages() {
+      return Math.ceil(arrayLength / numberPerPage);
+  };
   
-  let articles = json.response.docs;
-  // console.log(json.response.docs);
+  var numberOfPages = getNumberOfPages();  
+    console.log("numberOfPages:",numberOfPages); 
+
+  function check() {
+    console.log("pageNumber:",pageNumber);
+    document.getElementById("next").disabled = pageNumber == numberOfPages - 1 ? true : false;
+    document.getElementById("prev").disabled = pageNumber == 0 ? true : false;
+  }
    
-  
+  let articles = json.response.docs;
+  console.log("articles.length:",articles.length);
+    
   if(articles.length === 0) {
     console.log("No results");
+    check();
+
   } else {
+     
     for(let i = 0; i < articles.length; i++) {
+        check();        
         let article = document.createElement('article');
         let heading = document.createElement('h2');
         let link = document.createElement('a');
@@ -119,10 +138,10 @@ function displayResults(json) {
     if(articles.length === 10) {
         nav.style.display = 'block'; //shows the nav display if 10 items are in the array
       } else {
-        nav.style.display = 'none'; //hides the nav display if less than 10 items are in the array
+          check();
+          // nav.style.display = 'none'; //hides the nav display if less than 10 items are in the array
       }
-
-      
+       
 }; 
 
 function nextPage(e){
@@ -132,16 +151,15 @@ function nextPage(e){
    console.log("Page number:", pageNumber); //3
 
 }; //5
-                  
  
 function previousPage(e) {
     if(pageNumber > 0) { //1
       pageNumber--; //2
-      fetchResults(e); 
+      // fetchResults(e); 
     } else {
       return; //3
     }
     fetchResults(e); //4
     console.log("Page:", pageNumber); //5
   
-  };
+};
